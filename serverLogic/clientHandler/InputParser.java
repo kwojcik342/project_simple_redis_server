@@ -4,22 +4,22 @@ import serverLogic.domain.RespDataType;
 
 public class InputParser {
 
-    // general note: if any error occurs we won't be processing further commands
+    // parses array of bytes according to resp protocol
 
     private static final int separatorOffset = 4;
 
-    private byte[] inputCommands;
+    private byte[] inputCommand;
     private int offset;
-    private int commandsCount;
-    private int processedCommands;
+    private int argumentsCount;
+    private int processedArguments;
     private String errorMessage;
     private boolean isError;
 
     public InputParser(byte[] inputBuffer){
-        this.inputCommands = inputBuffer;
+        this.inputCommand = inputBuffer;
         this.offset = 0;
-        this.commandsCount = 0;
-        this.processedCommands = 0;
+        this.argumentsCount = 0;
+        this.processedArguments = 0;
         this.errorMessage = null;
         this.isError = false;
 
@@ -29,15 +29,17 @@ public class InputParser {
     private void initParser(){
 
         // command should be a RESP array of bulk strings
-        if ((char) this.inputCommands[0] == RespDataType.RESP_ARRAY.firstByte) {
+        // each array is a single command
+        // each bulk string is argument of command
+        if ((char) this.inputCommand[0] == RespDataType.RESP_ARRAY.firstByte) {
 
             try {
-                this.commandsCount = Integer.valueOf(this.getNextChunk().substring(1));
+                this.argumentsCount = Integer.valueOf(this.getNextChunk().substring(1));
             } catch (NumberFormatException e) {
-                this.setError("ERR invalid value for number of commands in array");
+                this.setError("ERR invalid value for number of arguments in array");
             }
             
-            //System.out.println(this.commandsCount); // LOG
+            //System.out.println(this.argumentsCount); // LOG
 
         } else {
             this.setError("ERR command not a RESP array");
@@ -51,8 +53,8 @@ public class InputParser {
 
         int chunkLength = 0;
 
-        for(int i = this.offset; i < this.inputCommands.length; i++){
-            char c = (char) this.inputCommands[i];
+        for(int i = this.offset; i < this.inputCommand.length; i++){
+            char c = (char) this.inputCommand[i];
 
             if (c == '\\') {
                 break;
@@ -61,21 +63,21 @@ public class InputParser {
             chunkLength++;
         }
 
-        String nextChunk = new String(inputCommands, this.offset, chunkLength);
+        String nextChunk = new String(inputCommand, this.offset, chunkLength);
 
         this.offset += (chunkLength + InputParser.separatorOffset);
 
         return nextChunk;
     }
 
-    public String getNextCommand(){
+    public String getNextArgument(){
 
-        // returns null if there are no more commands to process or on error
+        // returns null if there are no more arguments to process or on error
         String command = null;
         
-        if (this.processedCommands < this.commandsCount) {
+        if (this.processedArguments < this.argumentsCount) {
             String bulkStrHeader = this.getNextChunk();
-            //System.out.println("getNextCommand bulkStrHeader = " + bulkStrHeader); // LOG
+            //System.out.println("getNextArgument bulkStrHeader = " + bulkStrHeader); // LOG
 
             if (bulkStrHeader.charAt(0) == RespDataType.RESP_BULK_STRING.firstByte) {
                 int commandLength = 0;
@@ -83,15 +85,15 @@ public class InputParser {
                 try {
                     commandLength = Integer.valueOf(bulkStrHeader.substring(1));
                 } catch (NumberFormatException e) {
-                    this.setError("ERR next command invalid value for bulk string length");
+                    this.setError("ERR next argument invalid value for bulk string length");
                     System.out.println(this.errorMessage); // LOG
                 }
 
                 if (commandLength > 0) {
                     command = this.getNextChunk();
-                    //System.out.println("getNextCommand command = " + command); // LOG
+                    //System.out.println("getNextArgument command = " + command); // LOG
 
-                    this.processedCommands++;
+                    this.processedArguments++;
                 }
             } else {
                 this.setError("ERR next command not a bulk string");

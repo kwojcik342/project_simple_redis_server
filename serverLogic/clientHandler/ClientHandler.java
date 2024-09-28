@@ -3,16 +3,22 @@ package serverLogic.clientHandler;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.net.Socket;
+import java.util.concurrent.ExecutorService;
 
 import serverLogic.commandProcessor.CommandProcessor;
+import serverLogic.dataStorage.DataStorage;
 import serverLogic.domain.Response;
 
 public class ClientHandler implements Runnable{
 
     private Socket client;
+    private ExecutorService dataAccessES;
+    private DataStorage dataStorage;
 
-    public ClientHandler(Socket client){
+    public ClientHandler(Socket client, ExecutorService dataAccessES, DataStorage dataStorage){
         this.client = client;
+        this.dataAccessES = dataAccessES;
+        this.dataStorage = dataStorage;
     }
 
     @Override
@@ -26,7 +32,7 @@ public class ClientHandler implements Runnable{
 
             while (ins.read(buffer) != -1) {
 
-                Response r = CommandProcessor.processCommands(new InputParser(buffer));
+                Response r = CommandProcessor.processCommand(new InputParser(buffer), this.dataAccessES, this.dataStorage);
 
                 outs.writeBytes(r.getMessage());
 

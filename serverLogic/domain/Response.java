@@ -21,6 +21,14 @@ public class Response {
         this.responseMessage.append(rdt.firstByte);
 
         if (rdt == RespDataType.RESP_BULK_STRING) {
+            if (message == null || message.isBlank()) {
+                // empty bulk string
+                this.responseMessage.append("-1");
+                this.responseMessage.append(this.separator);
+                this.responseMsgCount++;
+                return;
+            }
+
             this.responseMessage.append(message.length());
             this.responseMessage.append(this.separator);
         }
@@ -37,6 +45,7 @@ public class Response {
     public String getMessage(){
         if (this.responseMsgCount > 0) {
             if (this.responseMsgCount > 1) {
+                // multiple messages require encoding response as resp array
                 this.responseMessage.insert(0, this.separator);
                 this.responseMessage.insert(0, responseMsgCount);
                 this.responseMessage.insert(0, RespDataType.RESP_ARRAY.firstByte);
