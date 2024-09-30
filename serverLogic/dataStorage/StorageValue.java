@@ -24,11 +24,12 @@ public class StorageValue {
     }
 
     public boolean isExpired(){
+
         if (this.expireDateTime == null) {
             return false;
         }
 
-        if (this.expireDateTime.isAfter(LocalDateTime.now())) {
+        if (this.expireDateTime.isBefore(LocalDateTime.now())) {
             return true;
         }
 

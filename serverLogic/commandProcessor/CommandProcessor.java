@@ -91,7 +91,9 @@ public final class CommandProcessor {
         while ((nextArgument = ip.getNextArgument()) != null) {
             if (nextArgument.equals("px")) {
                 try {
-                    milisToExpire = Integer.valueOf(ip.getNextArgument());
+                    String milisToExpStr = ip.getNextArgument();
+                    System.out.println("milisToExpStr = (" + milisToExpStr + ") length = " + milisToExpStr.length());
+                    milisToExpire = Integer.valueOf(milisToExpStr);
                 } catch (NumberFormatException e) {
                     r.setMessage("ERR invalid value for expire time", RespDataType.RESP_SIMPLE_ERROR);
                 }

@@ -26,6 +26,8 @@ public class DataStorage {
                 // active way - periodically redis removes keys from memory that have already expired
                 // this check implements passive key expiration
                 retValue = value.getValue();
+            } else {
+                System.out.println("value exists but expired"); // LOG
             }
         }
 

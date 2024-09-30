@@ -73,25 +73,25 @@ public class InputParser {
     public String getNextArgument(){
 
         // returns null if there are no more arguments to process or on error
-        String command = null;
+        String argument = null;
         
         if (this.processedArguments < this.argumentsCount) {
             String bulkStrHeader = this.getNextChunk();
             //System.out.println("getNextArgument bulkStrHeader = " + bulkStrHeader); // LOG
 
             if (bulkStrHeader.charAt(0) == RespDataType.RESP_BULK_STRING.firstByte) {
-                int commandLength = 0;
+                int argumentLength = 0;
 
                 try {
-                    commandLength = Integer.valueOf(bulkStrHeader.substring(1));
+                    argumentLength = Integer.valueOf(bulkStrHeader.substring(1));
                 } catch (NumberFormatException e) {
                     this.setError("ERR next argument invalid value for bulk string length");
                     System.out.println(this.errorMessage); // LOG
                 }
 
-                if (commandLength > 0) {
-                    command = this.getNextChunk();
-                    //System.out.println("getNextArgument command = " + command); // LOG
+                if (argumentLength > 0) {
+                    argument = this.getNextChunk();
+                    //System.out.println("getNextArgument argument = " + argument); // LOG
 
                     this.processedArguments++;
                 }
@@ -100,7 +100,7 @@ public class InputParser {
             }
         }
 
-        return command;
+        return argument;
     }
 
     private void setError(String errMessage){
