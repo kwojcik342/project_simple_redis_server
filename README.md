@@ -2,7 +2,7 @@
 Implementation of simple redis server, database storing key-value pairs in memory.
 
 ### currently implemented functionality
-- tcp server accepting multiple concurrent client connections 
+- tcp server accepting multiple concurrent client connections. Although multiple connections are accepted only single thread is sequentially processing actual commands accessing data (https://redis.io/docs/latest/operate/oss_and_stack/management/optimization/latency/#single-threaded-nature-of-redis)
 - client's input commands parsing according to redis protocol (https://redis.io/docs/latest/develop/reference/protocol-spec/#resp-protocol-description)
 - currently handled commands(https://redis.io/docs/latest/commands/): 
   - ping
