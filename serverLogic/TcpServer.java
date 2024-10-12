@@ -8,14 +8,21 @@ import java.util.concurrent.TimeUnit;
 
 import serverLogic.clientHandler.ClientHandler;
 import serverLogic.dataStorage.DataStorage;
+import serverLogic.serverConfiguration.ServerConfiguration;
 
 public class TcpServer {
+    private ServerConfiguration config;
     private ServerSocket server;
     private ExecutorService connectionES;
     private ExecutorService dataAccessES;
     private DataStorage dataStorage;
 
-    public void startServer(int port){
+
+    public TcpServer(String confFilePath){
+        this.config = new ServerConfiguration(confFilePath);
+    }
+
+    public void startServer(){
 
         // executor service for handling multiple client connections at the same time
         this.connectionES = Executors.newCachedThreadPool();
@@ -27,7 +34,7 @@ public class TcpServer {
         dataStorage = new DataStorage();
 
         try {
-            this.server = new ServerSocket(port);
+            this.server = new ServerSocket(Integer.valueOf(this.config.getConfigValue("port")));
 
             while (true) {
                 Socket client = this.server.accept();
