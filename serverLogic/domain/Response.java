@@ -1,9 +1,12 @@
 package serverLogic.domain;
 
+import java.util.Collection;
+
 public class Response {
     private boolean isFinal; // if true it means connection with client will be closed after we send this response
     private StringBuilder responseMessage;
     private int responseMsgCount;
+    private boolean respAsArray; // if true response formatted as resp array even if it contains only 1 value
 
     private final String separator = "\\r\\n";
 
@@ -11,6 +14,7 @@ public class Response {
         this.isFinal = false;
         this.responseMessage = new StringBuilder();
         this.responseMsgCount = 0;
+        this.respAsArray = false;
     }
 
     public void setIsFinal(boolean isFinal){
@@ -38,13 +42,21 @@ public class Response {
         this.responseMsgCount++;
     }
 
+    public void setMessage(Collection<String> arr){
+        // resp array
+        for(String k : arr){
+            this.setMessage(k, RespDataType.RESP_BULK_STRING);
+        }
+        this.respAsArray = true;
+    }
+
     public boolean isFinal(){
         return this.isFinal;
     }
     
     public String getMessage(){
         if (this.responseMsgCount > 0) {
-            if (this.responseMsgCount > 1) {
+            if (this.responseMsgCount > 1 || this.respAsArray) {
                 // multiple messages require encoding response as resp array
                 this.responseMessage.insert(0, this.separator);
                 this.responseMessage.insert(0, responseMsgCount);

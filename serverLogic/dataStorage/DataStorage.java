@@ -3,6 +3,8 @@ package serverLogic.dataStorage;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 
 public class DataStorage {
     private HashMap<String, String> storage;
@@ -14,7 +16,6 @@ public class DataStorage {
     }
 
     public void addToStorage(String key, String value, int milisToExpire){
-        // example with expire: *5\r\n$$3\r\nSET\r\n$$3\r\nfoo\r\n$$3\r\nbar\r\n$$2\r\npx\r\n$$5\r\n10000\r\n
 
         System.out.println("adding to storage key = (" + key + ") value = (" + value + ")"); // LOG
 
@@ -60,5 +61,21 @@ public class DataStorage {
         System.out.println("retValue = " + retValue);
 
         return retValue;
+    }
+
+    public List<String> getKeys(String pattern){
+        // returns list of unexpired keys matching pattern
+        // handles only patterns containing * and ?
+        String rgPattern = pattern.replaceAll("\\*", ".*").replaceAll("\\?", ".?");
+
+        List<String> keys = new LinkedList<>();
+
+        for(String k : this.storage.keySet()){
+            if (!this.isExpired(k) && k.matches(rgPattern)) {
+                keys.add(k);
+            }
+        }
+
+        return keys;
     }
 }

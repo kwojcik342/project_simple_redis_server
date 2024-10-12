@@ -9,4 +9,5 @@ Implementation of simple redis server, database storing key-value pairs in memor
   - echo (ex: *2\r\n$4\r\nECHO\r\n$3\r\nhey\r\n)
   - get (ex: *2\r\n$$3\r\nGET\r\n$$3\r\nfoo\r\n)
   - set (This command is able to handle parameter px which sets expire time for the pair. There are two ways keys can expire: passive and active. Passive expiration means that pair is still kept in memory but it won't be returned in get command, active means that an expired pair is deleted from memory. Currently only passive expiration is implemented) (ex: *5\r\n$$3\r\nSET\r\n$$3\r\nfoo\r\n$$3\r\nbar\r\n$$2\r\npx\r\n$$5\r\n20000\r\n)
+  - keys (command returns unexpired keys that match a pattern, it handles only patterns containing * and ?) (ex: *2\r\n$$4\r\nKEYS\r\n$$2\r\nf*\r\n)
 - ability to read config file on startup. It's possible to run the program with cli argument of config file path, if this argument is ommitted default values for parameters will be set.
