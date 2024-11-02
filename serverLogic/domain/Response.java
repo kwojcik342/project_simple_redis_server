@@ -44,10 +44,14 @@ public class Response {
 
     public void setMessage(Collection<String> arr){
         // resp array
-        for(String k : arr){
-            this.setMessage(k, RespDataType.RESP_BULK_STRING);
+        if (arr.isEmpty()) {
+            this.setMessage(null, RespDataType.RESP_BULK_STRING);
+        }else {
+            for(String k : arr){
+                this.setMessage(k, RespDataType.RESP_BULK_STRING);
+            }
+            this.respAsArray = true;
         }
-        this.respAsArray = true;
     }
 
     public boolean isFinal(){

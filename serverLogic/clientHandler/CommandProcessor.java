@@ -97,7 +97,7 @@ public final class CommandProcessor {
             r.setMessage("ERR empty value", RespDataType.RESP_SIMPLE_ERROR);
         }
 
-        int milisToExpire = 0;
+        long milisToExpire = 0;
 
         String nextArgument = null;
 
@@ -106,7 +106,7 @@ public final class CommandProcessor {
                 try {
                     String milisToExpStr = ip.getNextArgument();
                     System.out.println("milisToExpStr = (" + milisToExpStr + ") length = " + milisToExpStr.length());
-                    milisToExpire = Integer.valueOf(milisToExpStr);
+                    milisToExpire = Long.valueOf(milisToExpStr); //Integer.valueOf(milisToExpStr);
                 } catch (NumberFormatException e) {
                     r.setMessage("ERR invalid value for expire time", RespDataType.RESP_SIMPLE_ERROR);
                 }

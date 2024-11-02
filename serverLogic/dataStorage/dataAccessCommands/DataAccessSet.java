@@ -9,9 +9,9 @@ public class DataAccessSet implements Callable<String>{
     private DataStorage dataStorage;
     private String key;
     private String value;
-    private int milisToExpire;
+    private long milisToExpire;
 
-    public DataAccessSet(DataStorage dataStorage, String key, String value, int milisToExpire){
+    public DataAccessSet(DataStorage dataStorage, String key, String value, long milisToExpire){
         this.dataStorage = dataStorage;
         this.key = key;
         this.value = value;

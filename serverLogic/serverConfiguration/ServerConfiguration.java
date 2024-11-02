@@ -1,7 +1,6 @@
 package serverLogic.serverConfiguration;
 
 import java.nio.file.Paths;
-import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Scanner;
 
@@ -13,6 +12,8 @@ public class ServerConfiguration {
         this.confFilePath = confFilePath;
         this.config = new HashMap<>();
 
+        System.out.println("creating config based on file: " + confFilePath);
+
         this.createDefaultConfig();
 
         if (this.confFilePath != null) {
@@ -21,9 +22,9 @@ public class ServerConfiguration {
     }
 
     private void createDefaultConfig(){
-        this.config.put("port", "6379");
-        this.config.put("dir", "redis_data");
-        this.config.put("dbfilename", "rdbfile_" + LocalDateTime.now().toString());
+        this.config.put(ConfigKeys.CONF_PORT.keyStr, "6379");
+        this.config.put(ConfigKeys.CONF_DIR.keyStr, "redis_data");
+        this.config.put(ConfigKeys.CONF_DBFILENAME.keyStr, "dump.rdb");
     }
 
     private void loadConfigFromFile(){
@@ -52,7 +53,7 @@ public class ServerConfiguration {
         }
     }
 
-    public String getConfigValue(String configParam){
-        return this.config.get(configParam);
+    public String getConfigValue(ConfigKeys ck){
+        return this.config.get(ck.keyStr);
     }
 }

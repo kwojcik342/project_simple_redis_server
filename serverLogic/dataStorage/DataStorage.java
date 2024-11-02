@@ -15,7 +15,7 @@ public class DataStorage {
         this.expirations = new HashMap<>();
     }
 
-    public void addToStorage(String key, String value, int milisToExpire){
+    public void addToStorage(String key, String value, long milisToExpire){
 
         System.out.println("adding to storage key = (" + key + ") value = (" + value + ")"); // LOG
 
@@ -24,7 +24,7 @@ public class DataStorage {
         if (milisToExpire > 0) {
             System.out.println("adding expiration = (" + milisToExpire + ")"); // LOG
 
-            Duration dur = Duration.ofMillis((long) milisToExpire);
+            Duration dur = Duration.ofMillis(milisToExpire);
             this.expirations.put(key, LocalDateTime.now().plus(dur));
         }
     }

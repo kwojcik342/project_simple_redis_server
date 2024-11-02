@@ -4,18 +4,18 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.HashMap;
 
 public final class DumpReader {
     // reads redis .rdb file, based on https://rdb.fnordig.de/file_format.html
 
     private DumpReader(){}
 
-    public static HashMap<String, String> readRdbData(String filePath){
-        HashMap<String, String> rdbData = new HashMap<>();
+    public static DataStorage readRdbData(String filePath){
+        DataStorage rdbData = new DataStorage();
 
         System.out.println("Trying to read dump from file: " + filePath);
 
@@ -78,6 +78,7 @@ public final class DumpReader {
             while ((b = fis.read()) != -1) {
 
                 LocalDateTime expTime = null;
+                long milisToExpire = 0;
 
                 if (b == 0xFE) {
                     System.out.println("database selector section");
@@ -93,6 +94,10 @@ public final class DumpReader {
                     System.out.println("expire time in seconds");
                     int expSeconds = ByteBuffer.wrap(fis.readNBytes(4)).getInt();
                     System.out.println("expSeconds = " + expSeconds);
+
+                    expTime = LocalDateTime.ofInstant(Instant.ofEpochSecond(expSeconds), ZoneId.of("UTC"));
+
+                    milisToExpire = Duration.between(LocalDateTime.now(), expTime).toMillis();
 
                     // read value type flag
                     b = fis.read();
@@ -112,6 +117,8 @@ public final class DumpReader {
 
                     expTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(expMiliseconds), ZoneId.of("UTC"));
                     //System.out.println("expiration time = " + expTime);
+
+                    milisToExpire = Duration.between(LocalDateTime.now(), expTime).toMillis();
 
                     // read value type flag
                     b = fis.read();
@@ -146,16 +153,23 @@ public final class DumpReader {
                 String valStr = new String(valBarr);
                 System.out.println("key = " + keyStr + " value = " + new String(valStr));
 
-                rdbData.put(keyStr, valStr);
-
                 if (expTime != null) {
                     System.out.println("expiration time = " + expTime);
+                }
+
+                if (milisToExpire >= 0) {
+                    // expired keys should not be imported from rdb files
+
+                    //rdbData.put(keyStr, valStr);
+                    rdbData.addToStorage(keyStr, valStr, milisToExpire);
                 }
 
             }
             
         } catch (Exception e) {
             e.printStackTrace();
+            System.out.println("");
+            System.out.println("Error reading dump file, application will start as empty database.");
         }
 
         return rdbData;

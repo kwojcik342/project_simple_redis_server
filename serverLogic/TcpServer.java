@@ -8,6 +8,8 @@ import java.util.concurrent.TimeUnit;
 
 import serverLogic.clientHandler.ClientHandler;
 import serverLogic.dataStorage.DataStorage;
+import serverLogic.dataStorage.DumpReader;
+import serverLogic.serverConfiguration.ConfigKeys;
 import serverLogic.serverConfiguration.ServerConfiguration;
 
 public class TcpServer {
@@ -31,14 +33,18 @@ public class TcpServer {
         // we have separate executor service which executes client's requests sequentialy on single thread
         this.dataAccessES = Executors.newSingleThreadExecutor();
 
-        dataStorage = new DataStorage();
+
+        this.dataStorage = DumpReader.readRdbData(this.config.getConfigValue(ConfigKeys.CONF_DIR) + "\\" + this.config.getConfigValue(ConfigKeys.CONF_DBFILENAME));
+        if (this.dataStorage == null) {
+            this.dataStorage = new DataStorage();
+        }
 
         try {
-            this.server = new ServerSocket(Integer.valueOf(this.config.getConfigValue("port")));
+            this.server = new ServerSocket(Integer.valueOf(this.config.getConfigValue(ConfigKeys.CONF_PORT)));
 
             while (true) {
                 Socket client = this.server.accept();
-                connectionES.submit(new ClientHandler(client, dataAccessES, dataStorage));
+                connectionES.submit(new ClientHandler(client, dataAccessES, this.dataStorage));
             }
             
         } catch (Exception e) {
