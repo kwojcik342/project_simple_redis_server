@@ -21,6 +21,10 @@ public class Response {
         this.isFinal = isFinal;
     }
 
+    public void setRespAsArray(boolean respAsArray){
+        this.respAsArray = respAsArray;
+    }
+
     public void setMessage(String message, RespDataType rdt){
         this.responseMessage.append(rdt.firstByte);
 

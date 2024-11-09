@@ -9,6 +9,8 @@ import java.util.concurrent.TimeUnit;
 import serverLogic.clientHandler.ClientHandler;
 import serverLogic.dataStorage.DataStorage;
 import serverLogic.dataStorage.DumpReader;
+import serverLogic.masterConnection.ConnectionToMaster;
+import serverLogic.masterConnection.MasterConnectionSetup;
 import serverLogic.serverConfiguration.ConfigKeys;
 import serverLogic.serverConfiguration.ServerConfiguration;
 
@@ -18,10 +20,11 @@ public class TcpServer {
     private ExecutorService connectionES;
     private ExecutorService dataAccessES;
     private DataStorage dataStorage;
+    private ConnectionToMaster masterConnection;
 
 
-    public TcpServer(String confFilePath){
-        this.config = new ServerConfiguration(confFilePath);
+    public TcpServer(String[] cliArgs){
+        this.config = new ServerConfiguration(cliArgs);
     }
 
     public void startServer(){
@@ -33,8 +36,17 @@ public class TcpServer {
         // we have separate executor service which executes client's requests sequentialy on single thread
         this.dataAccessES = Executors.newSingleThreadExecutor();
 
+        // check if instance is supposed to be slave
+        this.masterConnection = MasterConnectionSetup.getConnectionToMaster(this.config);
 
-        this.dataStorage = DumpReader.readRdbData(this.config.getConfigValue(ConfigKeys.CONF_DIR) + "\\" + this.config.getConfigValue(ConfigKeys.CONF_DBFILENAME));
+        if (this.masterConnection != null) {
+            // TODO: somehow get data for this.dataStorage from this.masterConnection
+            this.dataStorage = null;
+        }else{
+            // if not slave try getting initial data from dump file
+            this.dataStorage = DumpReader.readRdbData(this.config.getConfigValue(ConfigKeys.CONF_DIR) + "\\" + this.config.getConfigValue(ConfigKeys.CONF_DBFILENAME));
+        }
+
         if (this.dataStorage == null) {
             this.dataStorage = new DataStorage();
         }
