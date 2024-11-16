@@ -20,17 +20,20 @@ public final class MasterConnectionSetup {
         if (replicaOf == null) {
             System.out.println("No configuration for connection to master.");
         }else{
-            ConnectionToMaster c2m = MasterConnectionSetup.initSocket(replicaOf);
+            ConnectionToMaster c2m = MasterConnectionSetup.initSocket(replicaOf, config);
 
-            if (c2m.handshake()) {
-                return c2m;
+            if (c2m != null) {
+                if (c2m.handshake()) {
+                    System.out.println("Handshake process successful - connection to master established");
+                    return c2m;
+                }
             }
         }
 
         return null;
     }
 
-    private static ConnectionToMaster initSocket(String replicaOf){
+    private static ConnectionToMaster initSocket(String replicaOf, ServerConfiguration config){
         String[] replicaOfSplit = replicaOf.split(" ");
 
         if (replicaOfSplit.length != 2) {
@@ -51,7 +54,7 @@ public final class MasterConnectionSetup {
                     DataInputStream ins = new DataInputStream(masterSocket.getInputStream());
                     DataOutputStream outs = new DataOutputStream(masterSocket.getOutputStream());
 
-                    return new ConnectionToMaster(masterSocket, ins, outs);
+                    return new ConnectionToMaster(masterSocket, ins, outs, config);
 
                 } catch (Exception e) {
                     System.out.println("ERROR on connection to master setup.");

@@ -40,19 +40,24 @@ public class TcpServer {
         this.masterConnection = MasterConnectionSetup.getConnectionToMaster(this.config);
 
         if (this.masterConnection != null) {
+            System.out.println("Replica instance, getting data from master."); // LOG
             // TODO: somehow get data for this.dataStorage from this.masterConnection
             this.dataStorage = null;
         }else{
             // if not slave try getting initial data from dump file
+            System.out.println("No master configuration, trying to get initial data from dump file."); // LOG
             this.dataStorage = DumpReader.readRdbData(this.config.getConfigValue(ConfigKeys.CONF_DIR) + "\\" + this.config.getConfigValue(ConfigKeys.CONF_DBFILENAME));
         }
 
         if (this.dataStorage == null) {
+            System.out.println("Empty initial data storage."); // LOG
             this.dataStorage = new DataStorage();
         }
 
         try {
             this.server = new ServerSocket(Integer.valueOf(this.config.getConfigValue(ConfigKeys.CONF_PORT)));
+
+            System.out.println("Server started, waiting for client connections..."); // LOG
 
             while (true) {
                 Socket client = this.server.accept();
@@ -76,7 +81,9 @@ public class TcpServer {
             }
 
             try {
-                this.server.close();
+                if (this.server != null) {
+                    this.server.close();
+                }
             } catch (Exception e) {
                 e.printStackTrace();
             }

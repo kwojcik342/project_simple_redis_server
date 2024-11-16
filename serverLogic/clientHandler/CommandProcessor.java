@@ -66,6 +66,16 @@ public final class CommandProcessor {
                 CommandProcessor.processKeys(ip, dataAccessES, dataStorage, r);
             }
 
+            if (command.equals("replconf")) {
+                // sent automaticly during handshake process for replication setup
+                CommandProcessor.processReplConf(ip, r);
+            }
+
+            if (command.equals("psync")) {
+                // sent automaticly during handshake process for replication setup
+                CommandProcessor.processPsync(ip, r);
+            }
+
         }
 
         System.out.println("response to client (" + Thread.currentThread().getName() + "): " + r.getMessage()); // LOG
@@ -180,6 +190,27 @@ public final class CommandProcessor {
         } else {
             r.setMessage("ERR empty pattern value", RespDataType.RESP_SIMPLE_ERROR);
         }
+    }
+
+    private static void processReplConf(InputParser ip, Response r){
+        String replConfArg = ip.getNextArgument();
+        String replConfVal = ip.getNextArgument();
+        System.out.println("Processing REPLCONF: " + replConfArg + " " + replConfVal);
+
+        r.setMessage("OK", RespDataType.RESP_SIMPLE_STRING);
+    }
+
+    private static void processPsync(InputParser ip, Response r){
+        String replId = ip.getNextArgument();
+        String replOffset = ip.getNextArgument();
+        System.out.println("Processing PSYNC, replication id =  " + replId + " offset = " + replOffset);
+
+        String masterReplId = "8371b4fb1155b71f4a04d3e1bc3e18c4a990aeeb";
+        String masterOffset = "0";
+
+        String responseMsg = "FULLRESYNC " + masterReplId + " " + masterOffset;
+
+        r.setMessage(responseMsg, RespDataType.RESP_SIMPLE_STRING);
     }
 
 }

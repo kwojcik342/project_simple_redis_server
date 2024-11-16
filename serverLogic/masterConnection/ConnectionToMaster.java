@@ -7,17 +7,21 @@ import java.net.Socket;
 
 import serverLogic.domain.RespDataType;
 import serverLogic.domain.Response;
+import serverLogic.serverConfiguration.ConfigKeys;
+import serverLogic.serverConfiguration.ServerConfiguration;
 
 public class ConnectionToMaster {
 
     private Socket conToMaster;
     private DataInputStream ins;
     private DataOutputStream outs;
+    private ServerConfiguration config;
 
-    public ConnectionToMaster(Socket conToMaster, DataInputStream ins, DataOutputStream outs){
+    public ConnectionToMaster(Socket conToMaster, DataInputStream ins, DataOutputStream outs, ServerConfiguration config){
         this.conToMaster = conToMaster;
         this.ins = ins;
         this.outs = outs;
+        this.config = config;
     }
 
     public void closeConnection(){
@@ -50,33 +54,85 @@ public class ConnectionToMaster {
     public boolean handshake(){
 
         if (this.handshakePing()) {
-            return true;
-        }else{
-            return false;
+            if (this.handshakeReplconf()) {
+                if (this.handshakePsync()) {
+                    return true;
+                }
+            }
         }
+        
+        return false;
     }
 
     private boolean handshakePing(){
-        final String msg = "PING";
 
-        System.out.println("Trying handshake ping");
+        System.out.println("Trying handshake ping"); // LOG
 
-        String response = this.sendMsg(this.parseMsgToRespProtocol(msg), true);
+        Response msg = new Response();
+        msg.setMessage("PING", RespDataType.RESP_BULK_STRING);
+        msg.setRespAsArray(true);
 
-        if (response.contains("OK")) {
-            System.out.println("Handshake ping succesfull");
+        String response = this.sendMsg(msg.getMessage(), true);
+
+        if (response.contains("PONG")) {
+            System.out.println("Handshake ping successfull"); // LOG
             return true;
         }else{
-            System.out.println("Handshake ping failed");
+            System.out.println("Handshake ping failed"); // LOG
             return false;
         }
     }
 
-    public String parseMsgToRespProtocol(String msg){
-        Response r = new Response();
-        r.setMessage(msg, RespDataType.RESP_BULK_STRING);
-        r.setRespAsArray(true);
-        return r.getMessage();
+    private boolean handshakeReplconf(){
+
+        System.out.println("Trying handshake replconf"); // LOG
+
+        Response msg = new Response();
+        msg.setMessage("REPLCONF", RespDataType.RESP_BULK_STRING);
+        msg.setMessage("listening-port", RespDataType.RESP_BULK_STRING);
+        msg.setMessage(this.config.getConfigValue(ConfigKeys.CONF_PORT), RespDataType.RESP_BULK_STRING);
+
+        String response = this.sendMsg(msg.getMessage(), true);
+
+        if (response.contains("OK")) {
+
+            System.out.println("REPLCONF listening-port successful"); // LOG
+
+            // configuration of replication capabilities
+            // doesn't do anything in this project but let's just make whole handshake thing according to documentation
+            msg = new Response();
+            msg.setMessage("REPLCONF", RespDataType.RESP_BULK_STRING);
+            msg.setMessage("capa", RespDataType.RESP_BULK_STRING);
+            msg.setMessage("psync2", RespDataType.RESP_BULK_STRING);
+
+            response = this.sendMsg(msg.getMessage(), true);
+
+            if (response.contains("OK")) {
+                System.out.println("REPLCONF capa successful"); // LOG
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private boolean handshakePsync(){
+
+        System.out.println("Trying handshake replconf"); // LOG
+
+        Response msg = new Response();
+        msg.setMessage("PSYNC", RespDataType.RESP_BULK_STRING);
+        msg.setMessage("?", RespDataType.RESP_BULK_STRING);
+        msg.setMessage("-1", RespDataType.RESP_BULK_STRING);
+
+        String response = this.sendMsg(msg.getMessage(), true);
+
+        if (response.contains("OK")) {
+            System.out.println("PSYNC successful"); // LOG
+            return true;
+        }
+
+        return false;
     }
 
     public String sendMsg(String msg, boolean getResponse){
@@ -86,6 +142,7 @@ public class ConnectionToMaster {
         
         try {
             this.outs.writeBytes(msg);
+            this.outs.flush();
 
             if (getResponse) {
                 byte[] buffer = new byte[2048];
