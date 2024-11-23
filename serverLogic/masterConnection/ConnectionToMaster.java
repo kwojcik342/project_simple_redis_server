@@ -118,7 +118,7 @@ public class ConnectionToMaster {
 
     private boolean handshakePsync(){
 
-        System.out.println("Trying handshake replconf"); // LOG
+        System.out.println("Trying handshake psync"); // LOG
 
         Response msg = new Response();
         msg.setMessage("PSYNC", RespDataType.RESP_BULK_STRING);
@@ -127,12 +127,12 @@ public class ConnectionToMaster {
 
         String response = this.sendMsg(msg.getMessage(), true);
 
-        if (response.contains("OK")) {
-            System.out.println("PSYNC successful"); // LOG
-            return true;
+        if (response.charAt(0) == '-') {
+            // char - means response was encoded as simple error
+            return false;
         }
 
-        return false;
+        return true;
     }
 
     public String sendMsg(String msg, boolean getResponse){
@@ -141,8 +141,9 @@ public class ConnectionToMaster {
         System.out.println("sending message to master: " + msg);
         
         try {
-            this.outs.writeBytes(msg);
-            this.outs.flush();
+            //this.outs.writeBytes(msg);
+            //this.outs.flush();
+            this.outs.write(msg.getBytes());
 
             if (getResponse) {
                 byte[] buffer = new byte[2048];

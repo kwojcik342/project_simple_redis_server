@@ -33,7 +33,8 @@ public class ClientHandler implements Runnable{
 
                 Response r = CommandProcessor.processCommand(new InputParser(buffer), this.dataAccessES, this.dataStorage);
 
-                outs.writeBytes(r.getMessage());
+                //outs.writeBytes(r.getMessage());
+                outs.write(r.getMessage().getBytes());
 
                 if (r.isFinal()) {
                     break;
