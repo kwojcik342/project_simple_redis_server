@@ -18,7 +18,7 @@ public final class CommandProcessor {
 
     private CommandProcessor(){}
 
-    public static Response processCommand(InputParser ip, ExecutorService dataAccessES, DataStorage dataStorage){
+    public static Response processCommand(InputParser ip, ExecutorService dataAccessES, DataStorage dataStorage, ClientReplicaSetup crs){
         Response r = new Response();
 
         while(true){
@@ -42,6 +42,8 @@ public final class CommandProcessor {
                 // example: *1\r\n$$4\r\nPING\r\n
 
                 CommandProcessor.processPing(r);
+
+                crs.setReplHsPing(true);
             }
 
             if (command.equals("echo")) {
@@ -68,12 +70,12 @@ public final class CommandProcessor {
 
             if (command.equals("replconf")) {
                 // sent automaticly during handshake process for replication setup
-                CommandProcessor.processReplConf(ip, r);
+                CommandProcessor.processReplConf(ip, r, crs);
             }
 
             if (command.equals("psync")) {
                 // sent automaticly during handshake process for replication setup
-                CommandProcessor.processPsync(ip, r);
+                CommandProcessor.processPsync(ip, r, crs);
             }
 
         }
@@ -192,25 +194,57 @@ public final class CommandProcessor {
         }
     }
 
-    private static void processReplConf(InputParser ip, Response r){
+    private static void processReplConf(InputParser ip, Response r, ClientReplicaSetup crs){
         String replConfArg = ip.getNextArgument();
         String replConfVal = ip.getNextArgument();
         System.out.println("Processing REPLCONF: " + replConfArg + " " + replConfVal);
 
-        r.setMessage("OK", RespDataType.RESP_SIMPLE_STRING);
+        if (!crs.isReplHsPing()) {
+            r.setMessage("ERR PING not sent for replica handshake process", RespDataType.RESP_SIMPLE_ERROR);
+        } else {
+            if (replConfArg.equals("listening-port")) {
+                crs.setReplHsConfPort(true);
+                r.setMessage("OK", RespDataType.RESP_SIMPLE_STRING);
+            }
+    
+            if (replConfArg.equals("capa")) {
+                if (!crs.isReplHsConfPort()) {
+                    r.setMessage("ERR listening-port not sent for replica handshake process", RespDataType.RESP_SIMPLE_ERROR);
+                } else {
+                    crs.setReplHsConfCapa(true);
+                    r.setMessage("OK", RespDataType.RESP_SIMPLE_STRING);
+                }
+            }
+
+        }
     }
 
-    private static void processPsync(InputParser ip, Response r){
+    private static void processPsync(InputParser ip, Response r, ClientReplicaSetup crs){
         String replId = ip.getNextArgument();
         String replOffset = ip.getNextArgument();
         System.out.println("Processing PSYNC, replication id =  " + replId + " offset = " + replOffset);
 
-        String masterReplId = "8371b4fb1155b71f4a04d3e1bc3e18c4a990aeeb";
-        String masterOffset = "0";
+        if (crs.isReplHsPing() && crs.isReplHsConfPort() && crs.isReplHsConfCapa()) {
 
-        String responseMsg = "FULLRESYNC " + masterReplId + " " + masterOffset;
+            String masterReplId = "8371b4fb1155b71f4a04d3e1bc3e18c4a990aeeb";
+            String masterOffset = "0";
 
-        r.setMessage(responseMsg, RespDataType.RESP_SIMPLE_STRING);
+            String responseMsg = "FULLRESYNC " + masterReplId + " " + masterOffset;
+
+            crs.setReplHsPsync(true);
+
+            r.setMessage(responseMsg, RespDataType.RESP_SIMPLE_STRING);
+        } else {
+            if (!crs.isReplHsPing()) {
+                r.setMessage("ERR PING not sent for replica handshake process", RespDataType.RESP_SIMPLE_ERROR);
+            } else {
+                if (!crs.isReplHsConfPort()) {
+                    r.setMessage("ERR listening-port not sent for replica handshake process", RespDataType.RESP_SIMPLE_ERROR);
+                } else {
+                    r.setMessage("ERR capa not sent for replica handshake process", RespDataType.RESP_SIMPLE_ERROR);
+                }
+            }
+        }
     }
 
 }

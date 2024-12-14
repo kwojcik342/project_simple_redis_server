@@ -13,11 +13,14 @@ public class ClientHandler implements Runnable{
     private Socket client;
     private ExecutorService dataAccessES;
     private DataStorage dataStorage;
+    private ClientReplicaSetup clientReplicaSetup;
 
     public ClientHandler(Socket client, ExecutorService dataAccessES, DataStorage dataStorage){
         this.client = client;
         this.dataAccessES = dataAccessES;
         this.dataStorage = dataStorage;
+
+        this.clientReplicaSetup = new ClientReplicaSetup();
     }
 
     @Override
@@ -31,7 +34,7 @@ public class ClientHandler implements Runnable{
 
             while (ins.read(buffer) != -1) {
 
-                Response r = CommandProcessor.processCommand(new InputParser(buffer), this.dataAccessES, this.dataStorage);
+                Response r = CommandProcessor.processCommand(new InputParser(buffer), this.dataAccessES, this.dataStorage, this.clientReplicaSetup);
 
                 //outs.writeBytes(r.getMessage());
                 outs.write(r.getMessage().getBytes());
