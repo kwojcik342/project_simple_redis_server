@@ -12,14 +12,17 @@ import serverLogic.dataStorage.dataAccessCommands.DataAccessKeys;
 import serverLogic.dataStorage.dataAccessCommands.DataAccessSet;
 import serverLogic.domain.RespDataType;
 import serverLogic.domain.Response;
+import serverLogic.masterConnection.ConnectionToMaster;
 
 public final class CommandProcessor {
     // processes commands received from client
 
     private CommandProcessor(){}
 
-    public static Response processCommand(InputParser ip, ExecutorService dataAccessES, DataStorage dataStorage, ClientReplicaSetup crs){
+    public static Response processCommand(InputParser ip, ExecutorService dataAccessES, DataStorage dataStorage, ClientReplicaSetup crs, ConnectionToMaster masterConnection){
         Response r = new Response();
+
+        boolean replicateCommand = false;
 
         while(true){
 
@@ -56,6 +59,7 @@ public final class CommandProcessor {
                 // example no expiration: *3\r\n$$3\r\nSET\r\n$$3\r\nhey\r\n$$3\r\nbye\r\n
 
                 CommandProcessor.processSet(ip, dataAccessES, dataStorage, r);
+                replicateCommand = true;
             }
 
             if (command.equals("get")) {
@@ -81,6 +85,15 @@ public final class CommandProcessor {
         }
 
         System.out.println("response to client (" + Thread.currentThread().getName() + "): " + r.getMessage()); // LOG
+
+        if (!r.isError() && replicateCommand) {
+            // replicate to master
+            String commandToReplicate = ip.getFullCommandAsString();
+
+            if (masterConnection != null) {
+                masterConnection.sendMsg(commandToReplicate, true);
+            }
+        }
 
         if (r.getMessage() == null) {
             r.setMessage("ERR unknown command", RespDataType.RESP_SIMPLE_ERROR);

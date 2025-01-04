@@ -61,7 +61,7 @@ public class TcpServer {
 
             while (true) {
                 Socket client = this.server.accept();
-                connectionES.submit(new ClientHandler(client, dataAccessES, this.dataStorage));
+                connectionES.submit(new ClientHandler(client, dataAccessES, this.dataStorage, this.masterConnection));
             }
             
         } catch (Exception e) {

@@ -103,6 +103,20 @@ public class InputParser {
         return argument;
     }
 
+    public String getFullCommandAsString(){
+
+        // get position of first empty byte
+        int actualLength;
+        for(actualLength = 0; actualLength < this.inputCommand.length && this.inputCommand[actualLength] != 0; actualLength++){}
+        //System.out.println("actualLength = " + actualLength); // LOG
+
+        String fullCommand = new String(inputCommand, 0, actualLength);
+
+        //System.out.println("full command = " + fullCommand + " length = " + fullCommand.length()); // LOG
+
+        return fullCommand;
+    }
+
     private void setError(String errMessage){
         this.errorMessage = errMessage;
         this.isError = true;

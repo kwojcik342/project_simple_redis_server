@@ -149,7 +149,7 @@ public class ConnectionToMaster {
                 byte[] buffer = new byte[2048];
                 this.ins.read(buffer);
                 responseFromServer = new String(buffer).trim();
-                System.out.println("response from server = " + responseFromServer);
+                System.out.println("response from master = " + responseFromServer);
             }
 
         } catch (IOException e) {

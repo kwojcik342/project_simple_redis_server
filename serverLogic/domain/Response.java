@@ -7,6 +7,7 @@ public class Response {
     private StringBuilder responseMessage;
     private int responseMsgCount;
     private boolean respAsArray; // if true response formatted as resp array even if it contains only 1 value
+    private boolean isError;
 
     private final String separator = "\\r\\n";
 
@@ -15,6 +16,7 @@ public class Response {
         this.responseMessage = new StringBuilder();
         this.responseMsgCount = 0;
         this.respAsArray = false;
+        this.isError = false;
     }
 
     public void setIsFinal(boolean isFinal){
@@ -25,7 +27,18 @@ public class Response {
         this.respAsArray = respAsArray;
     }
 
+    public boolean isError(){
+        return this.isError;
+    }
+
     public void setMessage(String message, RespDataType rdt){
+
+        if (rdt == RespDataType.RESP_SIMPLE_ERROR) {
+            this.isError = true;
+        }else {
+            this.isError = false;
+        }
+
         this.responseMessage.append(rdt.firstByte);
 
         if (rdt == RespDataType.RESP_BULK_STRING) {
