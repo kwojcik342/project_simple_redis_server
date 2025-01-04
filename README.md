@@ -14,7 +14,7 @@ Implementation of simple redis server, database storing key-value pairs in memor
 - ability to read config file on startup, config file shoud be in path "redis_data/redis.conf". Folder "redis_data" contains sample config.
 - limited ability to read redis dump files in rdb format (based on https://rdb.fnordig.de/file_format.html). It's possible to read key value pairs with value encoded using "String encoding". On startup program will try to read dump file available in path defined in config(default path is "\redis_data\dump.rdb"). There are 2 files included both of them contain 2 pairs (hey:bye, foo:bar), pairs in default file "dump.rdb" don't have any expiration time, in second file "dump_expire.rdb" key "foo" has expiration date of "2024-09-30T11:50:13.261" so it won't be loaded from file because it has already expired.
 
-# replication
+### replication
 - possibility to run the program with input parameter --replicaof "localhost 6379" which will automaticly establish connection with master instance running on specified port (running program without this parameter will launch it as master)
 - connection to master is established with handshake process consisting of 3 automatic steps: sending a PING, REPLCONF twice, PSYNC commands
 - set command sent to replica is automaticly resent to master
