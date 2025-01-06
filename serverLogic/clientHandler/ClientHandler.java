@@ -8,6 +8,7 @@ import java.util.concurrent.ExecutorService;
 import serverLogic.dataStorage.DataStorage;
 import serverLogic.domain.Response;
 import serverLogic.masterConnection.ConnectionToMaster;
+import serverLogic.replication.ReplicationEndpoints;
 
 public class ClientHandler implements Runnable{
 
@@ -16,12 +17,14 @@ public class ClientHandler implements Runnable{
     private DataStorage dataStorage;
     private ClientReplicaSetup clientReplicaSetup;
     private ConnectionToMaster masterConnection;
+    private ReplicationEndpoints replicationEndpoints;
 
-    public ClientHandler(Socket client, ExecutorService dataAccessES, DataStorage dataStorage, ConnectionToMaster masterConnection){
+    public ClientHandler(Socket client, ExecutorService dataAccessES, DataStorage dataStorage, ConnectionToMaster masterConnection, ReplicationEndpoints replicationEndpoints){
         this.client = client;
         this.dataAccessES = dataAccessES;
         this.dataStorage = dataStorage;
         this.masterConnection = masterConnection;
+        this.replicationEndpoints = replicationEndpoints;
 
         this.clientReplicaSetup = new ClientReplicaSetup();
     }

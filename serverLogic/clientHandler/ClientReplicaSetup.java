@@ -6,12 +6,14 @@ public class ClientReplicaSetup {
     private boolean replHsConfPort;
     private boolean replHsConfCapa;
     private boolean replHsPsync;
+    private boolean isReplica; // connection added to master's list of replicas
 
     public ClientReplicaSetup(){
         this.replHsPing = false;
         this.replHsConfPort = false;
         this.replHsConfCapa = false;
         this.replHsPsync = false;
+        this.isReplica = false;
     }
 
     public void setReplHsPing(boolean val){
@@ -30,6 +32,10 @@ public class ClientReplicaSetup {
         this.replHsPsync = val;
     }
 
+    public void setIsReplica(boolean val){
+        this.isReplica = val;
+    }
+
     public boolean isReplHsPing(){
         return this.replHsPing;
     }
@@ -46,6 +52,10 @@ public class ClientReplicaSetup {
         return this.replHsPsync;
     }
 
+    public boolean isReplica(){
+        return this.isReplica;
+    }
+
     public void resetSetup(){
         this.replHsPing = false;
         this.replHsConfPort = false;
@@ -53,7 +63,8 @@ public class ClientReplicaSetup {
         this.replHsPsync = false;
     }
 
-    public boolean isReplica(){
+    public boolean isHandshakeEstablished(){
         return this.replHsPing && this.replHsConfPort && this.replHsConfCapa && this.replHsPsync;
     }
+
 }

@@ -11,6 +11,7 @@ import serverLogic.dataStorage.DataStorage;
 import serverLogic.dataStorage.DumpReader;
 import serverLogic.masterConnection.ConnectionToMaster;
 import serverLogic.masterConnection.MasterConnectionSetup;
+import serverLogic.replication.ReplicationEndpoints;
 import serverLogic.serverConfiguration.ConfigKeys;
 import serverLogic.serverConfiguration.ServerConfiguration;
 
@@ -21,6 +22,7 @@ public class TcpServer {
     private ExecutorService dataAccessES;
     private DataStorage dataStorage;
     private ConnectionToMaster masterConnection;
+    private ReplicationEndpoints replicationEndpoints;
 
 
     public TcpServer(String[] cliArgs){
@@ -54,6 +56,9 @@ public class TcpServer {
             this.dataStorage = new DataStorage();
         }
 
+        // initialize list for posiible replicas
+        this.replicationEndpoints = new ReplicationEndpoints();
+
         try {
             this.server = new ServerSocket(Integer.valueOf(this.config.getConfigValue(ConfigKeys.CONF_PORT)));
 
@@ -61,7 +66,7 @@ public class TcpServer {
 
             while (true) {
                 Socket client = this.server.accept();
-                connectionES.submit(new ClientHandler(client, dataAccessES, this.dataStorage, this.masterConnection));
+                connectionES.submit(new ClientHandler(client, dataAccessES, this.dataStorage, this.masterConnection, this.replicationEndpoints));
             }
             
         } catch (Exception e) {
