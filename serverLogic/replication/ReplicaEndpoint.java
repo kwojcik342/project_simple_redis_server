@@ -13,6 +13,14 @@ public class ReplicaEndpoint {
         this.outs = outs;
     }
 
+    public DataInputStream getInputStream(){
+        return this.ins;
+    }
+
+    public DataOutputStream getOutputStream(){
+        return this.outs;
+    }
+
     public void sendMsg(String msg) throws IOException{
 
         System.out.println("sending message to replica: " + msg);

@@ -13,13 +13,15 @@ import serverLogic.dataStorage.dataAccessCommands.DataAccessSet;
 import serverLogic.domain.RespDataType;
 import serverLogic.domain.Response;
 import serverLogic.masterConnection.ConnectionToMaster;
+import serverLogic.replication.ReplicateMessage;
+import serverLogic.replication.ReplicationEndpoints;
 
 public final class CommandProcessor {
     // processes commands received from client
 
     private CommandProcessor(){}
 
-    public static Response processCommand(InputParser ip, ExecutorService dataAccessES, DataStorage dataStorage, ClientReplicaSetup crs, ConnectionToMaster masterConnection){
+    public static Response processCommand(InputParser ip, ExecutorService dataAccessES, DataStorage dataStorage, ClientReplicaSetup crs, ConnectionToMaster masterConnection, ReplicationEndpoints replicationEndpoints){
         Response r = new Response();
 
         boolean replicateCommand = false;
@@ -92,6 +94,10 @@ public final class CommandProcessor {
 
             if (masterConnection != null) {
                 masterConnection.sendMsg(commandToReplicate, true);
+            }
+
+            if (replicationEndpoints != null) {
+                dataAccessES.submit(new ReplicateMessage(commandToReplicate, replicationEndpoints));
             }
         }
 

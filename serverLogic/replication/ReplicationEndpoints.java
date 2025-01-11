@@ -10,8 +10,15 @@ public class ReplicationEndpoints {
         this.res = new LinkedList<>();
     }
 
+    public void addEndpoint(ReplicaEndpoint re){
+        this.res.add(new ReplicaEndpoint(re.getInputStream(), re.getOutputStream()));
+    }
+
     public void replicateMessage(String message){
+        System.out.println("replicating message " + message);
         if (this.res.size() > 0) {
+
+            System.out.println("replica endpoints exist");
 
             Iterator<ReplicaEndpoint> itRE = this.res.iterator();
             

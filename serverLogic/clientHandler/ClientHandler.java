@@ -4,10 +4,14 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.net.Socket;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 
 import serverLogic.dataStorage.DataStorage;
+import serverLogic.domain.RespDataType;
 import serverLogic.domain.Response;
 import serverLogic.masterConnection.ConnectionToMaster;
+import serverLogic.replication.ReplicaEndpoint;
+import serverLogic.replication.ReplicaEndpointAdd;
 import serverLogic.replication.ReplicationEndpoints;
 
 public class ClientHandler implements Runnable{
@@ -29,6 +33,20 @@ public class ClientHandler implements Runnable{
         this.clientReplicaSetup = new ClientReplicaSetup();
     }
 
+    private int addReplicaEndpoint(DataInputStream ins, DataOutputStream outs){
+        int res = 1;
+        Future<Integer> addReFuture = this.dataAccessES.submit(new ReplicaEndpointAdd(this.replicationEndpoints, new ReplicaEndpoint(ins, outs)));
+
+        try {
+            res = addReFuture.get();
+        } catch (Exception e) {
+            e.printStackTrace();
+            res = -1;
+        }
+
+        return res;
+    }
+
     @Override
     public void run() {
 
@@ -40,7 +58,16 @@ public class ClientHandler implements Runnable{
 
             while (ins.read(buffer) != -1) {
 
-                Response r = CommandProcessor.processCommand(new InputParser(buffer), this.dataAccessES, this.dataStorage, this.clientReplicaSetup, this.masterConnection);
+                Response r = CommandProcessor.processCommand(new InputParser(buffer), this.dataAccessES, this.dataStorage, this.clientReplicaSetup, this.masterConnection, this.replicationEndpoints);
+
+                if (this.clientReplicaSetup.isHandshakeEstablished() && !this.clientReplicaSetup.isReplica()) {
+                    if (this.addReplicaEndpoint(ins, outs) != 1) {
+                        r = new Response();
+                        r.setMessage("ERR adding endpoint to list failed", RespDataType.RESP_SIMPLE_ERROR);
+                    } else {
+                        this.clientReplicaSetup.setIsReplica(true);
+                    }
+                }
 
                 //outs.writeBytes(r.getMessage());
                 outs.write(r.getMessage().getBytes());
