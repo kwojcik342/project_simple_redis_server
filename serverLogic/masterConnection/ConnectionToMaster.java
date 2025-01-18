@@ -24,6 +24,10 @@ public class ConnectionToMaster {
         this.config = config;
     }
 
+    public DataInputStream getDataInputStream(){
+        return this.getDataInputStream();
+    }
+
     public void closeConnection(){
         try {
             this.ins.close();

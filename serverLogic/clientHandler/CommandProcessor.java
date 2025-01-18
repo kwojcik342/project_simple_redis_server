@@ -21,7 +21,7 @@ public final class CommandProcessor {
 
     private CommandProcessor(){}
 
-    public static Response processCommand(InputParser ip, ExecutorService dataAccessES, DataStorage dataStorage, ClientReplicaSetup crs, ConnectionToMaster masterConnection, ReplicationEndpoints replicationEndpoints){
+    public static Response processCommand(InputParser ip, ExecutorService dataAccessES, DataStorage dataStorage, ClientReplicaSetup crs, ConnectionToMaster masterConnection, ReplicationEndpoints replicationEndpoints, boolean isMasterMsg){
         Response r = new Response();
 
         boolean replicateCommand = false;
@@ -92,7 +92,7 @@ public final class CommandProcessor {
             // replicate to master
             String commandToReplicate = ip.getFullCommandAsString();
 
-            if (masterConnection != null) {
+            if (masterConnection != null && !isMasterMsg) {
                 masterConnection.sendMsg(commandToReplicate, true);
             }
 

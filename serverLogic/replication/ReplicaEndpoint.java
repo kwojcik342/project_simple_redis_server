@@ -27,9 +27,6 @@ public class ReplicaEndpoint {
         
         this.outs.write(msg.getBytes());
 
-        byte[] buffer = new byte[2048];
-        this.ins.read(buffer);
-        String responseFromReplica = new String(buffer).trim();
-        System.out.println("response from replica = " + responseFromReplica);
+        // not reading response because it would cause issues with multiple messages in the same stream
     }
 }

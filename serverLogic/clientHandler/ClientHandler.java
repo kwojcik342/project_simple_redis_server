@@ -58,7 +58,7 @@ public class ClientHandler implements Runnable{
 
             while (ins.read(buffer) != -1) {
 
-                Response r = CommandProcessor.processCommand(new InputParser(buffer), this.dataAccessES, this.dataStorage, this.clientReplicaSetup, this.masterConnection, this.replicationEndpoints);
+                Response r = CommandProcessor.processCommand(new InputParser(buffer), this.dataAccessES, this.dataStorage, this.clientReplicaSetup, this.masterConnection, this.replicationEndpoints, false);
 
                 if (this.clientReplicaSetup.isHandshakeEstablished() && !this.clientReplicaSetup.isReplica()) {
                     if (this.addReplicaEndpoint(ins, outs) != 1) {

@@ -11,6 +11,7 @@ import serverLogic.dataStorage.DataStorage;
 import serverLogic.dataStorage.DumpReader;
 import serverLogic.masterConnection.ConnectionToMaster;
 import serverLogic.masterConnection.MasterConnectionSetup;
+import serverLogic.masterConnection.MasterHandler;
 import serverLogic.replication.ReplicationEndpoints;
 import serverLogic.serverConfiguration.ConfigKeys;
 import serverLogic.serverConfiguration.ServerConfiguration;
@@ -45,6 +46,9 @@ public class TcpServer {
             System.out.println("Replica instance, getting data from master."); // LOG
             // TODO: somehow get data for this.dataStorage from this.masterConnection
             this.dataStorage = null;
+
+            // setup thread for reading data sent by master
+            connectionES.submit(new MasterHandler(this.dataAccessES, this.dataStorage, this.masterConnection));
         }else{
             // if not slave try getting initial data from dump file
             System.out.println("No master configuration, trying to get initial data from dump file."); // LOG
